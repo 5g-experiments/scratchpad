@@ -35,7 +35,7 @@ def location_verification(radius, lat, lon):
                 "latitude": lat,
                 "longitude": lon
             },
-            "radius": radius
+            "accuracy": radius
         },
         "maxAge": 0 # fresh calculation if 0, 120 in docs
     }
