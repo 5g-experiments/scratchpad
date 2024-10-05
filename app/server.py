@@ -9,6 +9,9 @@ from aiohttp import web
 from datetime import datetime
 import pandas as pd
 
+from mimetypes import MimeTypes
+mime = MimeTypes()
+
 ROOT = os.path.dirname(__file__)
 
 async def index(request):
@@ -24,8 +27,9 @@ async def assets(request):
         return web.Response(content_type="text/html", text="")
 
     content = open(requested_path, "r").read()
-    return web.Response(content_type="text/html", text=content)
-
+    mime_type = mime.guess_type(requested_path)[0]
+    print(mime_type)
+    return web.Response(content_type=mime_type, text=content)
 
 # TODO: move to class
 gps_data = []
