@@ -3,7 +3,7 @@
 import requests
 import os
 
-debug = True
+debug = False
 TOKEN = os.environ["TOKEN"]
 PHONE_NUMBER = os.environ["PHONE_NUMBER"]
 

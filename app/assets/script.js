@@ -8,8 +8,9 @@ b.onclick = () => {
     b.remove();
 
     geoFindMe();
-}
 
+    landingPage();
+}
 
 // gps
 
@@ -50,4 +51,48 @@ function geoFindMe() {
         status.textContent = "Locating…";
         navigator.geolocation.getCurrentPosition(success, error);
     }
+}
+
+// landingPage
+function landingPage() {
+    let b = document.createElement("button");
+    b.innerHTML = "Sell Stuff";
+    document.querySelector("body").appendChild(b)
+
+    let l = document.createElement("div");
+    document.querySelector("body").appendChild(l);
+
+    // items
+    let itemData = [
+        {
+            "title": "Used bicycle",
+            "lat": 49.262098693847655,
+            "lon": -123.24851837158204,
+            "price": "$5/hour"
+        },
+        {
+            "title": "Washing machine rent",
+            "lat": 49.262098693847655,
+            "lon": -123.24851837158204,
+            "price": "$1/hour"
+        },
+        {
+            "title": "Soup",
+            "lat": 49.262098693847655,
+            "lon": -123.24851837158204,
+            "price": "$8"
+        },
+    ]
+
+    let itemTag;
+    for (let item of itemData) {
+        console.log(itemData);
+        itemTag = document.createElement("div");
+        itemTag.innerHTML = `
+<h2>${item.title} - ${item.price}</h2>
+<div>Location: ${item.lat}, ${item.lon}</div>
+<button>Buy Now</button>
+`;
+        l.appendChild(itemTag);
+    };
 }
