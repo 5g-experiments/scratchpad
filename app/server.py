@@ -35,7 +35,7 @@ async def gps_logger(request):
     print(data)
     timestamp = datetime.now()
     data["timestamp"] = timestamp
-    gps_data.append(data)
+    #gps_data.append(data) # debug
 
     if len(gps_data) > gps_data_chunk_size:
         df = pd.DataFrame(gps_data)
