@@ -58,6 +58,7 @@ function landingPage() {
     let b = document.createElement("button");
     b.innerHTML = "Sell Stuff";
     document.querySelector("body").appendChild(b)
+    b.classList.add("buttonSell")
 
     let l = document.createElement("div");
     document.querySelector("body").appendChild(l);
@@ -86,12 +87,12 @@ function landingPage() {
 
     let itemTag;
     for (let item of itemData) {
-        console.log(itemData);
+        //console.log(itemData);
         itemTag = document.createElement("div");
         itemTag.innerHTML = `
 <h2>${item.title} - ${item.price}</h2>
 <div>Location: ${item.lat}, ${item.lon}</div>
-<button>Buy Now</button>
+<button class="buttonBuy">Buy Now</button>
 `;
         l.appendChild(itemTag);
     };
