@@ -3,6 +3,7 @@
 import requests
 import os
 
+debug = False
 TOKEN = os.environ["TOKEN"]
 PHONE_NUMBER = os.environ["PHONE_NUMBER"]
 
@@ -39,7 +40,6 @@ def location_verification(radius, lat, lon):
         },
         "maxAge": 0 # fresh calculation if 0, 120 in docs
     }
-    #print(body)
 
     # FIXME: why numberVerification uses camel case and this
     # uses hyphen?
@@ -69,7 +69,8 @@ def find_lat(precision = 0.001):
         else:
             lat_s = m
 
-        print(i, lat_s, lat_b)
+        if debug:
+            print(i, lat_s, lat_b)
         i += 1
 
     return m
@@ -87,14 +88,17 @@ def find_lon(precision = 0.001):
         else:
             lat_s = m
 
-        print(i, lat_s, lat_b)
+        if debug:
+            print(i, lat_s, lat_b)
         i += 1
 
     return m
 
 def find_exact_location(precision=0.00001):
-    print("Searching latitude")
+    if debug:
+        print("Searching latitude")
     lat = find_lat(precision)
-    print("Searching longitude")
+    if debug:
+        print("Searching longitude")
     lon = find_lon(precision)
     return lat, lon
