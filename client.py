@@ -3,7 +3,7 @@
 import requests
 import os
 
-debug = False
+debug = True
 TOKEN = os.environ["TOKEN"]
 PHONE_NUMBER = os.environ["PHONE_NUMBER"]
 
@@ -16,7 +16,7 @@ def post(endpoint, body):
     }
 
     # FIXME: docs say v1, but only v0 works
-    r = requests.post(f"https://pplx.azurewebsites.net/api/rapid/v0/{endpoint}/verify", json=body, headers=headers)
+    r = requests.post(f"https://pplx.azurewebsites.net/api/rapid/v0/{endpoint}/verify", json=body, headers=headers, timeout=5)
 
     #return r
     return r.json()
@@ -38,7 +38,7 @@ def location_verification(radius, lat, lon):
             },
             "accuracy": radius
         },
-        "maxAge": 0 # fresh calculation if 0, 120 in docs
+        "maxAge": 120 # fresh calculation if 0, 120 in docs
     }
 
     # FIXME: why numberVerification uses camel case and this

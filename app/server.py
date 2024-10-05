@@ -18,7 +18,12 @@ async def index(request):
 async def assets(request):
     path = request.match_info['name']
     #print(path)
-    content = open(os.path.join(ROOT, f"assets/{path}"), "r").read()
+    requested_path = os.path.join(ROOT, f"assets/{path}")
+    if os.path.commonprefix((requested_path, ROOT)) != ROOT:
+        print("WARNING: tried escaping server directory")
+        return web.Response(content_type="text/html", text="")
+
+    content = open(requested_path, "r").read()
     return web.Response(content_type="text/html", text=content)
 
 

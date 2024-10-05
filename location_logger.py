@@ -20,7 +20,7 @@ if __name__ == "__main__":
         data.append((lat, lon, timestamp))
         time.sleep(5)
 
-        if i % save_freq:
+        if i % save_freq == 0:
             df = pd.DataFrame(data, columns=columns)
             df.to_csv(f"data/{timestamp}.csv.bz2")
             data.clear()
