@@ -1,0 +1,18 @@
+element.style {
+    background: yellow;
+    margin: 0 200px;
+}
+
+.locationIndicator {
+    font-size: 25px;
+    display: inline;
+}
+
+.buttonSell {
+    background: aliceblue;
+    margin-top: 15px;
+}
+
+.buttonBuy {
+    background: pink;
+}
