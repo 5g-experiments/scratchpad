@@ -44,3 +44,9 @@ element.style {
     margin-top: 8em;
     border-radius: 7px;
 }
+
+#startAppButton {
+    margin: 5px;
+    background: #f9bb4d;
+    border-radius: 3px;
+}

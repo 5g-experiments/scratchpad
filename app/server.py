@@ -30,6 +30,7 @@ async def post_product(request):
 
     # TODO: check if succeeded
     db.insert_product(
+        data["user_id"],
         data["title"],
         data["lat"],
         data["lon"],
@@ -41,6 +42,22 @@ async def post_product(request):
     result = {
         "status": "ok",
         "products": products
+    }
+
+    return web.Response(content_type="application/json", text=json.dumps(result))
+
+async def login(request):
+    data = await request.json()
+    print(data)
+
+    id = db.insert_user(
+        data.get("email"),
+        data.get("phone"),
+        data.get("newsletter") or False)
+
+    result = {
+        "status": "ok",
+        "user_id": id
     }
 
     return web.Response(content_type="application/json", text=json.dumps(result))
@@ -109,6 +126,7 @@ if __name__ == "__main__":
     app.router.add_get("/product", index_products)
     app.router.add_post("/product", post_product)
     app.router.add_post("/gpsLogger", gps_logger)
+    app.router.add_post("/login", login)
     app.router.add_get("/assets/{name:.*}", assets)
     web.run_app(
         app, access_log=None, host=args.host, port=args.port, ssl_context=ssl_context

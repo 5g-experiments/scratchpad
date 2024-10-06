@@ -1,25 +1,70 @@
 "use strict";
 
-let b = document.createElement("button");
-b.innerHTML = "Start App";
-b.classList.add("startAppButton")
-document.querySelector("body").appendChild(b)
-
-b.onclick = () => {
-    b.remove();
-
-    geoFindMe();
-
-    landingPage();
-}
-
-// gps
-
+// program data
 let myApp = {
+    'user_id': null,
     'lat': null,
     'lon': null
 }
 
+// login component
+
+function loginComponent() {
+    let root = document.createElement("div");
+
+    root.innerHTML = `
+<form action="javascript:void(0);" id="loginForm">
+    <label for="phone">Phone number:</label><br>
+    <input type="text" id="phone" name="phone" placeholder="+1 (742) 893 1956"><br>
+    <label for="email">Email:</label><br>
+    <input type="text" id="email" name="email" placeholder="abra@radab.ca"><br><br>
+    <input type="checkbox" id="newsletter" name="newsletter" />
+    <label for="newsletter">Sign up for newsletter</label>
+    <br />
+    <input type="submit" id="startAppButton" value="Start App">
+</form>
+`;
+    document.querySelector("body").appendChild(root)
+
+    let b = document.getElementById("startAppButton");
+    b.classList.add("startAppButton");
+
+    document.querySelector("#loginForm").onsubmit = (event) => {
+        //console.log("Sumbit form!");
+        //console.log(event);
+        let formData = new FormData(event.target);
+        // output as an object
+        let data = Object.fromEntries(formData);
+
+        // if (!data['title'] || !data['price']) {
+        //     alert("Please set title and price");
+        //     return;
+        // }
+
+        fetch("/login", {
+            method: "POST",
+            body: JSON.stringify(data)
+        })
+            .then((response) => response.json())
+            .then((response) =>
+                new Promise((ok, fail) => {
+                    if (response['status'] == 'ok') {
+                        myApp['user_id'] = response['user_id'];
+                        root.remove();
+                        geoFindMe();
+                        landingPage();
+                        // ... do stuff
+                        ok();
+                    } else {
+                        fail();
+                    }
+                }))
+    }
+}
+
+loginComponent();
+
+// gps
 function geoFindMe() {
     const trackPeriod = 1000; // ms
 
@@ -164,6 +209,12 @@ function sellStuffForm() {
         // output as an object
         let data = Object.fromEntries(formData);
 
+        if (!data['title'] || !data['price']) {
+            alert("Please set title and price");
+            return;
+        }
+
+        data['user_id'] = myApp['user_id'];
         data['lat'] = myApp['lat'];
         data['lon'] = myApp['lon'];
 
