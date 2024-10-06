@@ -28,7 +28,8 @@ element.style {
 }
 
 .modal {
-    position: fixed;
+    display: table;
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
@@ -36,12 +37,17 @@ element.style {
     z-index: 1;
 }
 
+.verticalAlign {
+    display: table-cell;
+    vertical-align: middle;
+}
+
 .modalContent {
-    margin: auto;
+    margin-left: auto;
+    margin-right: auto;
     width: fit-content;
     padding: 2em;
     background: wheat;
-    margin-top: 8em;
     border-radius: 7px;
 }
 

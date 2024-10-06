@@ -4,7 +4,8 @@
 let myApp = {
     'user_id': null,
     'lat': null,
-    'lon': null
+    'lon': null,
+    'products': []
 }
 
 // login component
@@ -94,43 +95,44 @@ function geoFindMe() {
     mapLink.href = "";
     mapLink.textContent = "";
 
-    function success(position) {
-        const latitude = position.coords.latitude;
-        const longitude = position.coords.longitude;
-
-        myApp['lat'] = latitude;
-        myApp['lon'] = longitude;
-
-        fetch("/gpsLogger", {
-            method: "POST",
-            body: JSON.stringify({"latitude": latitude, "longitude": longitude})
-        });
-        //console.log(latitude, longitude);
-
-        status.textContent = "";
-        mapLink.href = `https://www.openstreetmap.org/#map=18/${latitude}/${longitude}`;
-        mapLink.textContent = `Latitude: ${latitude} °, Longitude: ${longitude} °`;
-        mapLink.classList.add("locationIndicator")
-
-        setTimeout(() => navigator.geolocation.getCurrentPosition(success, error), trackPeriod);
-    }
-
-    function error() {
-        status.textContent = "Unable to retrieve your location";
-
-        setTimeout(() => navigator.geolocation.getCurrentPosition(success, error), 2*trackPeriod);
-    }
-
     if (!navigator.geolocation) {
         status.textContent = "Geolocation is not supported by your browser";
     } else {
         status.textContent = "Locating…";
-        navigator.geolocation.getCurrentPosition(success, error);
+        navigator.geolocation.watchPosition(
+            function (position) {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+
+                myApp['lat'] = latitude;
+                myApp['lon'] = longitude;
+
+                fetch("/gpsLogger", {
+                    method: "POST",
+                    body: JSON.stringify({"latitude": latitude, "longitude": longitude})
+                });
+
+                status.textContent = "";
+                mapLink.href = `https://www.openstreetmap.org/#map=18/${latitude}/${longitude}`;
+                mapLink.textContent = `Latitude: ${latitude} °, Longitude: ${longitude} °`;
+                mapLink.classList.add("locationIndicator")
+
+                updateProductsComponent();
+            },
+            function (error) {
+                /*alert(`ERROR: ${error.message}`);*/
+            },
+            {
+                enableHighAccuracy: true,
+            }
+        );
     }
 }
 
 // landingPage
-function updateProductsComponent(products) {
+// only updates local stuff, i.e. recomputes distances and sorts
+function updateProductsComponent() {
+    let products = myApp["products"];
     let elId = "productsComponent";
 
     let oldProductsComponent = document.getElementById(elId);
@@ -146,7 +148,7 @@ function updateProductsComponent(products) {
         let distance = getDistanceFromLatLonInM(
             myApp['lat'], myApp['lon'],
             item.lat, item.lon);
-        distance = Math.floor(distance);
+        distance = Math.floor(distance * 100) / 100;
 
         item['distance'] = distance;
     }
@@ -196,10 +198,24 @@ function landingPage() {
     //     },
     // ]
 
+    pullProducts();
+}
+
+function pullProducts() {
     fetch("/product")
         .then((response) => response.json())
+        .then((products) => {myApp['products'] = products;})
         .then(updateProductsComponent);
 }
+
+// refresh products every two seconds
+setInterval(() => {
+    // only pull when logged in
+    if (!myApp["user_id"])
+        return;
+
+    pullProducts();
+}, 2000);
 
 function sellStuffForm() {
     // one modal max
@@ -215,7 +231,9 @@ function sellStuffForm() {
     document.querySelector("body").appendChild(modal_bg);
 
     // fill modal
-    modal.innerHTML = `<div class="modalContent">
+    modal.innerHTML = `
+<div class="verticalAlign">
+<div class="modalContent">
 <div class="modelPanel">
   <form action="javascript:void(0);" id="productSubmitForm">
     <label for="title">Title:</label><br>
@@ -225,6 +243,7 @@ function sellStuffForm() {
     <input type="submit" value="Submit">
     <button id="productSubmitFormCancel">Cancel</button>
   </form>
+</div>
 </div>
 </div>`;
 
@@ -259,7 +278,8 @@ function sellStuffForm() {
             .then((response) =>
                 new Promise((ok, fail) => {
                     if (response['status'] == 'ok') {
-                        updateProductsComponent(response['products']);
+                        myApp["products"] = response['products'];
+                        updateProductsComponent();
                         ok();
                     } else {
                         fail();
