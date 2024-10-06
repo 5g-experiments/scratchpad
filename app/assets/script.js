@@ -2,6 +2,7 @@
 
 let b = document.createElement("button");
 b.innerHTML = "Start App";
+b.classList.add("startAppButton")
 document.querySelector("body").appendChild(b)
 
 b.onclick = () => {
@@ -13,6 +14,11 @@ b.onclick = () => {
 }
 
 // gps
+
+let myApp = {
+    'lat': null,
+    'lon': null
+}
 
 function geoFindMe() {
     const trackPeriod = 5000; // ms
@@ -26,6 +32,9 @@ function geoFindMe() {
     function success(position) {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
+
+        myApp['lat'] = latitude;
+        myApp['lon'] = longitude;
 
         fetch("/gpsLogger", {
             method: "POST",
@@ -43,6 +52,8 @@ function geoFindMe() {
 
     function error() {
         status.textContent = "Unable to retrieve your location";
+
+        setTimeout(() => navigator.geolocation.getCurrentPosition(success, error), 2*trackPeriod);
     }
 
     if (!navigator.geolocation) {
@@ -54,39 +65,19 @@ function geoFindMe() {
 }
 
 // landingPage
-function landingPage() {
-    let b = document.createElement("button");
-    b.innerHTML = "Sell Stuff";
-    document.querySelector("body").appendChild(b)
-    b.classList.add("buttonSell")
+function updateProductsComponent(products) {
+    let elId = "productsComponent";
 
-    let l = document.createElement("div");
-    document.querySelector("body").appendChild(l);
+    let oldProductsComponent = document.getElementById(elId);
+    if (oldProductsComponent)
+        oldProductsComponent.remove();
 
-    // items
-    let itemData = [
-        {
-            "title": "Used bicycle",
-            "lat": 49.262098693847655,
-            "lon": -123.24851837158204,
-            "price": "$5/hour"
-        },
-        {
-            "title": "Washing machine rent",
-            "lat": 49.262098693847655,
-            "lon": -123.24851837158204,
-            "price": "$1/hour"
-        },
-        {
-            "title": "Soup",
-            "lat": 49.262098693847655,
-            "lon": -123.24851837158204,
-            "price": "$8"
-        },
-    ]
+    let productsComponent = document.createElement("div");
+    productsComponent.id = elId;
+    document.querySelector("body").appendChild(productsComponent);
 
     let itemTag;
-    for (let item of itemData) {
+    for (let item of products) {
         //console.log(itemData);
         itemTag = document.createElement("div");
         itemTag.innerHTML = `
@@ -94,6 +85,94 @@ function landingPage() {
 <div>Location: ${item.lat}, ${item.lon}</div>
 <button class="buttonBuy">Buy Now</button>
 `;
-        l.appendChild(itemTag);
+        productsComponent.appendChild(itemTag);
     };
+}
+
+function landingPage() {
+    let b = document.createElement("button");
+    b.innerHTML = "Sell Stuff";
+    document.querySelector("body").appendChild(b)
+    b.classList.add("buttonSell")
+    b.onclick = sellStuffForm;
+
+    // items
+    // let itemData = [
+    //     {
+    //         "title": "Used bicycle",
+    //         "lat": 49.262098693847655,
+    //         "lon": -123.24851837158204,
+    //         "price": "$5/hour"
+    //     },
+    //     {
+    //         "title": "Washing machine rent",
+    //         "lat": 49.262098693847655,
+    //         "lon": -123.24851837158204,
+    //         "price": "$1/hour"
+    //     },
+    //     {
+    //         "title": "Soup",
+    //         "lat": 49.262098693847655,
+    //         "lon": -123.24851837158204,
+    //         "price": "$8"
+    //     },
+    // ]
+
+    fetch("/product")
+        .then((response) => response.json())
+        .then(updateProductsComponent);
+}
+
+function sellStuffForm() {
+    // one modal max
+    if (!!document.querySelector(".modal"))
+        return;
+
+    let modal = document.createElement("div");
+    modal.classList.add("modal");
+    document.querySelector("body").appendChild(modal);
+
+    let modal_bg = document.createElement("div");
+    modal_bg.classList.add("modalBg");
+    document.querySelector("body").appendChild(modal_bg);
+
+    // fill modal
+    modal.innerHTML = `<div class="modalContent">
+<div class="modelPanel">
+  <form action="javascript:void(0);" id="productSubmitForm">
+    <label for="title">Title:</label><br>
+    <input type="text" id="title" name="title" placeholder="Soup"><br>
+    <label for="price">Price:</label><br>
+    <input type="text" id="price" name="price" placeholder="$8/L"><br><br>
+    <input type="submit" value="Submit">
+    <button id="productSubmitFormCancel">Cancel</button>
+  </form>
+</div>
+</div>`;
+
+    function closeForm() {
+        modal.remove();
+        modal_bg.remove();
+    }
+
+    document.querySelector("#productSubmitFormCancel").onclick = closeForm;
+
+    document.querySelector("#productSubmitForm").onsubmit = (event) => {
+        console.log("Sumbit form!");
+        //console.log(event);
+        let formData = new FormData(event.target);
+        // output as an object
+        let data = Object.fromEntries(formData);
+
+        data['lat'] = myApp['lat'];
+        data['lon'] = myApp['lon'];
+
+        fetch("/product", {
+            method: "POST",
+            body: JSON.stringify(data)
+        })
+            .then((response) => response.json())
+            .then(updateProductsComponent)
+            .then(closeForm);
+    }
 }

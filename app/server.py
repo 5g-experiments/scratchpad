@@ -9,6 +9,8 @@ from aiohttp import web
 from datetime import datetime
 import pandas as pd
 
+import db
+
 from mimetypes import MimeTypes
 mime = MimeTypes()
 
@@ -17,6 +19,24 @@ ROOT = os.path.dirname(__file__)
 async def index(request):
     content = open(os.path.join(ROOT, "index.html"), "r").read()
     return web.Response(content_type="text/html", text=content)
+
+async def index_products(request):
+    products = db.index_products()
+    return web.Response(content_type="application/json", text=json.dumps(products))
+
+async def post_product(request):
+    data = await request.json()
+    print(data)
+
+    # TODO: check if succeeded
+    db.insert_product(
+        data["title"],
+        data["lat"],
+        data["lon"],
+        data["price"]
+    )
+
+    return index_products(request)
 
 async def assets(request):
     path = request.match_info['name']
@@ -79,6 +99,8 @@ if __name__ == "__main__":
 
     app = web.Application()
     app.router.add_get("/", index)
+    app.router.add_get("/product", index_products)
+    app.router.add_post("/product", post_product)
     app.router.add_post("/gpsLogger", gps_logger)
     app.router.add_get("/assets/{name:.*}", assets)
     web.run_app(
