@@ -36,7 +36,14 @@ async def post_product(request):
         data["price"]
     )
 
-    return index_products(request)
+    products = db.index_products()
+
+    result = {
+        "status": "ok",
+        "products": products
+    }
+
+    return web.Response(content_type="application/json", text=json.dumps(result))
 
 async def assets(request):
     path = request.match_info['name']

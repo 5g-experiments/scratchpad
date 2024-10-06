@@ -21,7 +21,7 @@ let myApp = {
 }
 
 function geoFindMe() {
-    const trackPeriod = 5000; // ms
+    const trackPeriod = 1000; // ms
 
     const status = document.querySelector("#status");
     const mapLink = document.querySelector("#map-link");
@@ -158,7 +158,7 @@ function sellStuffForm() {
     document.querySelector("#productSubmitFormCancel").onclick = closeForm;
 
     document.querySelector("#productSubmitForm").onsubmit = (event) => {
-        console.log("Sumbit form!");
+        //console.log("Sumbit form!");
         //console.log(event);
         let formData = new FormData(event.target);
         // output as an object
@@ -172,7 +172,15 @@ function sellStuffForm() {
             body: JSON.stringify(data)
         })
             .then((response) => response.json())
-            .then(updateProductsComponent)
+            .then((response) =>
+                new Promise((ok, fail) => {
+                    if (response['status'] == 'ok') {
+                        updateProductsComponent(response['products']);
+                        ok();
+                    } else {
+                        fail();
+                    }
+                }))
             .then(closeForm);
     }
 }
