@@ -9,11 +9,58 @@ from aiohttp import web
 from datetime import datetime
 import pandas as pd
 
+import db
+
+from mimetypes import MimeTypes
+mime = MimeTypes()
+
 ROOT = os.path.dirname(__file__)
 
 async def index(request):
     content = open(os.path.join(ROOT, "index.html"), "r").read()
     return web.Response(content_type="text/html", text=content)
+
+async def index_products(request):
+    products = db.index_products()
+    return web.Response(content_type="application/json", text=json.dumps(products))
+
+async def post_product(request):
+    data = await request.json()
+    print(data)
+
+    # TODO: check if succeeded
+    db.insert_product(
+        data["user_id"],
+        data["title"],
+        data["lat"],
+        data["lon"],
+        data["price"]
+    )
+
+    products = db.index_products()
+
+    result = {
+        "status": "ok",
+        "products": products
+    }
+
+    return web.Response(content_type="application/json", text=json.dumps(result))
+
+async def login(request):
+    data = await request.json()
+    print(data)
+
+    id = db.insert_user(
+        data.get("email"),
+        data.get("phone"),
+        data.get("newsletter") or False)
+
+    result = {
+        "status": "ok",
+        "user_id": id
+    }
+
+    return web.Response(content_type="application/json", text=json.dumps(result))
 
 async def assets(request):
     path = request.match_info['name']
@@ -24,8 +71,9 @@ async def assets(request):
         return web.Response(content_type="text/html", text="")
 
     content = open(requested_path, "r").read()
-    return web.Response(content_type="text/html", text=content)
-
+    mime_type = mime.guess_type(requested_path)[0]
+    print(mime_type)
+    return web.Response(content_type=mime_type, text=content)
 
 # TODO: move to class
 gps_data = []
@@ -75,7 +123,10 @@ if __name__ == "__main__":
 
     app = web.Application()
     app.router.add_get("/", index)
+    app.router.add_get("/product", index_products)
+    app.router.add_post("/product", post_product)
     app.router.add_post("/gpsLogger", gps_logger)
+    app.router.add_post("/login", login)
     app.router.add_get("/assets/{name:.*}", assets)
     web.run_app(
         app, access_log=None, host=args.host, port=args.port, ssl_context=ssl_context
